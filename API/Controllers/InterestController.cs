@@ -22,6 +22,8 @@ namespace API.Controllers
         {
             var person = await _context.Persons
                 .Where(p => p.Id == id)
+                .Include(p => p.Links)
+                .ThenInclude(l => l.Interests)
                 .Select(p => new
                 {
                     p.Name,
