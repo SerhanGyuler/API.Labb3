@@ -2,7 +2,7 @@
 using API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
+using System.Linq;
 
 namespace API.Controllers
 {
@@ -20,30 +20,35 @@ namespace API.Controllers
         [HttpGet("{id:int}/interests")]
         public async Task<ActionResult<IEnumerable<object>>> GetInterestsByPersonId(int id)
         {
-            var person = await _context.Persons
+            // Hämta personens relaterade intressen genom personInterest-kopplingen
+            var personWithInterests = await _context.Persons
                 .Where(p => p.Id == id)
-                .Include(p => p.Links)
-                .ThenInclude(l => l.Interests)
+                .Include(p => p.PersonInterests)  // Inkludera PersonInterest-relationen
+                .ThenInclude(pi => pi.Interest)  // Inkludera Interest-relationen
+                .ThenInclude(i => i.PersonInterests) // För att få tillgång till Links via PersonInterest
+                .ThenInclude(pi => pi.Links) // Inkludera Links från PersonInterest
                 .Select(p => new
                 {
                     p.Name,
-                    Interests = p.Links.SelectMany(l => l.Interests.Select(i => new
+                    Interests = p.PersonInterests.Select(pi => new
                     {
-                        l.Url,
-                        InterestTitle = i.Title,
-                        InterestDescription = i.Description
-                    })).ToList()
+                        InterestTitle = pi.Interest.Title,
+                        InterestDescription = pi.Interest.Description,
+                        Links = pi.Links.Select(link => new
+                        {
+                            link.Url
+                        }).ToList()
+                    }).ToList()
                 })
                 .FirstOrDefaultAsync();
 
-            if (person == null)
+            if (personWithInterests == null)
             {
                 return NotFound(new { errorMessage = "Personen hittades inte." });
             }
 
-            return Ok(person);
+            return Ok(personWithInterests);
         }
-
 
     }
 }

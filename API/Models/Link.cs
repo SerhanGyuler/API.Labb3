@@ -8,9 +8,14 @@ namespace API.Models
         public int Id { get; set; }
         public string Url { get; set; } = string.Empty;
 
-        public ICollection<Person> Persons { get; set; } = new List<Person>();
-        public ICollection<Interest> Interests { get; set; } = new List<Interest>();
+        public int PersonId { get; set; }
+        public int InterestId { get; set; }
+
+
+        // Koppling till person och intresse
+        public PersonInterest PersonInterest { get; set; }
     }
+
 
 }
 

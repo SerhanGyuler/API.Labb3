@@ -6,6 +6,6 @@
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
 
-        public List<Link> Links { get; set; } = new();
+        public List<PersonInterest> PersonInterests { get; set; } = new();
     }
 }

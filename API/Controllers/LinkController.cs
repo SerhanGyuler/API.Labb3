@@ -1,5 +1,4 @@
 ﻿using API.Data;
-using API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,13 +20,15 @@ namespace API.Controllers
         {
             var person = await _context.Persons
                 .Where(p => p.Id == id)
+                .Include(p => p.PersonInterests) // PersonInterest för personen
+                .ThenInclude(pi => pi.Links) // Links via PersonInterest
                 .Select(p => new
                 {
                     p.Name,
-                    Links = p.Links.Select(l => new
+                    Links = p.PersonInterests.SelectMany(pi => pi.Links.Select(l => new
                     {
                         l.Url
-                    }).ToList()
+                    })).ToList()
                 })
                 .FirstOrDefaultAsync();
 
@@ -38,9 +39,5 @@ namespace API.Controllers
 
             return Ok(person);
         }
-
     }
 }
-
-
-

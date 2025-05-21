@@ -8,7 +8,6 @@ namespace API.Models
         public string Name { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public List<Link> Links { get; set; } = new();
-
+        public List<PersonInterest> PersonInterests { get; set; } = new();
     }
 }
