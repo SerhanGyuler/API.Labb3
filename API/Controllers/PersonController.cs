@@ -16,17 +16,26 @@ namespace API.Controllers
             _context = context;
         }
 
-        // Hämta alla personer i systemet
+        // Hämta alla personer
         [HttpGet(Name = "GetPersons")]
         public async Task<ActionResult<ICollection<Person>>> GetPersons()
         {
-            return Ok(await _context.Persons.ToListAsync());
+            var persons = await _context.Persons
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.PhoneNumber
+                })
+                .ToListAsync();
+
+            return Ok(persons);
         }
 
         // Koppla en person till ett nytt intresse
         [HttpPut("{personId:int}/{interestId:int}", Name = "AddPersonInterest")]
         public async Task<IActionResult> AddPersonInterest(int personId, int interestId)
         {
+            // Hämta personen från databasen
             var person = await _context.Persons
                 .Where(p => p.Id == personId)
                 .FirstOrDefaultAsync();
@@ -36,6 +45,7 @@ namespace API.Controllers
                 return NotFound(new { errorMessage = "Personen hittades inte." });
             }
 
+            // Hämta intresset från databasen
             var interest = await _context.Interests
                 .FirstOrDefaultAsync(i => i.Id == interestId);
 
@@ -44,24 +54,42 @@ namespace API.Controllers
                 return NotFound(new { errorMessage = "Intresset hittades inte." });
             }
 
-            // Hämta en länk som är kopplad till detta intresse
-            var interestLink = await _context.Links
-                .FirstOrDefaultAsync(l => l.Interests.Any(i => i.Id == interestId));
-             
-            if (interestLink == null)
+            // Kontrollera om relationen redan finns (Person-Interest relation)
+            var personInterest = await _context.PersonInterests
+                .FirstOrDefaultAsync(pi => pi.PersonId == personId && pi.InterestId == interestId);
+
+            if (personInterest != null)
             {
-                return NotFound(new { errorMessage = "Ingen länk hittades för intresset." });
+                return BadRequest(new { errorMessage = "Personen har redan det här intresset." });
             }
 
-            // Skapa ny länk-koppling
-            var link = new Link
+            // Skapa ny person-interest relation
+            var newPersonInterest = new PersonInterest
             {
-                Url = interestLink.Url,
-                Persons = new List<Person> { person },
-                Interests = new List<Interest> { interest }
+                PersonId = personId,
+                InterestId = interestId
             };
 
-            _context.Links.Add(link);
+            _context.PersonInterests.Add(newPersonInterest);
+
+            // Hämta länken som är kopplad till intresset
+            var interestLink = await _context.Links
+                .FirstOrDefaultAsync(l => l.PersonId == personId && l.InterestId == interestId);
+
+            if (interestLink == null)
+            {
+                // Skapa ny länk om den inte redan finns
+                var newLink = new Link
+                {
+                    Url = "https://example.com", // Sätt en lämplig URL
+                    PersonId = personId,
+                    InterestId = interestId
+                };
+
+                _context.Links.Add(newLink);
+            }
+
+            // Spara förändringarna
             await _context.SaveChangesAsync();
 
             return Ok(new { message = $"Intresset {interest.Title} kopplades till {person.Name}." });
@@ -71,35 +99,30 @@ namespace API.Controllers
         [HttpPut("{personId:int}/{interestId:int}/addlink")]
         public async Task<IActionResult> AddLinkToPersonInterest(int personId, int interestId, [FromBody] string url)
         {
-            var person = await _context.Persons
-                .Where(p => p.Id == personId)
-                .Include(p => p.Links)
-                .FirstOrDefaultAsync();
+            var personInterest = await _context.PersonInterests
+                .Include(pi => pi.Person)
+                .Include(pi => pi.Interest)
+                .FirstOrDefaultAsync(pi => pi.PersonId == personId && pi.InterestId == interestId);
 
-            if (person == null)
+            if (personInterest == null)
             {
-                return NotFound(new { errorMessage = "Personen hittades inte." });
+                return NotFound(new { errorMessage = "Person-Interest koppling hittades inte." });
             }
 
-            var interest = await _context.Interests.FindAsync(interestId);
-
-            if (interest == null)
-            {
-                return NotFound(new { errorMessage = "Intresset hittades inte." });
-            }
-
-            // Skapa en ny länk
+            // Skapa en ny länk och koppla den till PersonInterest
             var link = new Link
             {
                 Url = url,
-                Persons = new List<Person> { person },
-                Interests = new List<Interest> { interest }
+                PersonId = personInterest.PersonId,
+                InterestId = personInterest.InterestId
             };
 
             _context.Links.Add(link);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = $"Ny länk '{url}' skapades och kopplades till {person.Name} och {interest.Title}." });
+            return Ok(new { message = $"Ny länk '{url}' skapades och kopplades till {personInterest.Person.Name} och {personInterest.Interest.Title}." });
         }
+
+
     }
 }

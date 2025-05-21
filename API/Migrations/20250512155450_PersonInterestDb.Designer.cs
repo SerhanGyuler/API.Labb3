@@ -3,6 +3,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250512155450_PersonInterestDb")]
+    partial class PersonInterestDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,11 +91,19 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("InterestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId", "InterestId");
 
                     b.ToTable("Links");
 
@@ -100,41 +111,57 @@ namespace API.Migrations
                         new
                         {
                             Id = 1,
+                            InterestId = 1,
+                            PersonId = 1,
                             Url = "https://se.pinterest.com/"
                         },
                         new
                         {
                             Id = 2,
+                            InterestId = 3,
+                            PersonId = 1,
                             Url = "https://www.w3schools.com/"
                         },
                         new
                         {
                             Id = 3,
+                            InterestId = 2,
+                            PersonId = 2,
                             Url = "https://recept.se/"
                         },
                         new
                         {
                             Id = 4,
+                            InterestId = 4,
+                            PersonId = 3,
                             Url = "https://www.momondo.se/"
                         },
                         new
                         {
                             Id = 5,
+                            InterestId = 5,
+                            PersonId = 4,
                             Url = "https://spotify.com/"
                         },
                         new
                         {
                             Id = 6,
+                            InterestId = 6,
+                            PersonId = 2,
                             Url = "https://nordicwellness.se/"
                         },
                         new
                         {
                             Id = 7,
+                            InterestId = 3,
+                            PersonId = 3,
                             Url = "https://codecademy.com/"
                         },
                         new
                         {
                             Id = 8,
+                            InterestId = 3,
+                            PersonId = 1,
                             Url = "https://music.amazon.com/"
                         });
                 });
@@ -186,148 +213,101 @@ namespace API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("InterestLink", b =>
+            modelBuilder.Entity("API.Models.PersonInterest", b =>
                 {
-                    b.Property<int>("InterestsId")
+                    b.Property<int>("PersonId")
                         .HasColumnType("int");
 
-                    b.Property<int>("LinksId")
+                    b.Property<int>("InterestId")
                         .HasColumnType("int");
 
-                    b.HasKey("InterestsId", "LinksId");
+                    b.HasKey("PersonId", "InterestId");
 
-                    b.HasIndex("LinksId");
+                    b.HasIndex("InterestId");
 
-                    b.ToTable("InterestLink");
+                    b.ToTable("PersonInterests");
 
                     b.HasData(
                         new
                         {
-                            InterestsId = 1,
-                            LinksId = 1
+                            PersonId = 1,
+                            InterestId = 1
                         },
                         new
                         {
-                            InterestsId = 3,
-                            LinksId = 2
+                            PersonId = 1,
+                            InterestId = 3
                         },
                         new
                         {
-                            InterestsId = 2,
-                            LinksId = 3
+                            PersonId = 2,
+                            InterestId = 2
                         },
                         new
                         {
-                            InterestsId = 4,
-                            LinksId = 4
+                            PersonId = 2,
+                            InterestId = 6
                         },
                         new
                         {
-                            InterestsId = 5,
-                            LinksId = 5
+                            PersonId = 3,
+                            InterestId = 4
                         },
                         new
                         {
-                            InterestsId = 6,
-                            LinksId = 6
+                            PersonId = 3,
+                            InterestId = 3
                         },
                         new
                         {
-                            InterestsId = 3,
-                            LinksId = 7
-                        },
-                        new
-                        {
-                            InterestsId = 5,
-                            LinksId = 8
+                            PersonId = 4,
+                            InterestId = 5
                         });
                 });
 
-            modelBuilder.Entity("LinkPerson", b =>
+            modelBuilder.Entity("API.Models.Link", b =>
                 {
-                    b.Property<int>("LinksId")
-                        .HasColumnType("int");
+                    b.HasOne("API.Models.PersonInterest", "PersonInterest")
+                        .WithMany("Links")
+                        .HasForeignKey("PersonId", "InterestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<int>("PersonsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("LinksId", "PersonsId");
-
-                    b.HasIndex("PersonsId");
-
-                    b.ToTable("LinkPerson");
-
-                    b.HasData(
-                        new
-                        {
-                            LinksId = 1,
-                            PersonsId = 1
-                        },
-                        new
-                        {
-                            LinksId = 2,
-                            PersonsId = 1
-                        },
-                        new
-                        {
-                            LinksId = 3,
-                            PersonsId = 2
-                        },
-                        new
-                        {
-                            LinksId = 4,
-                            PersonsId = 3
-                        },
-                        new
-                        {
-                            LinksId = 5,
-                            PersonsId = 4
-                        },
-                        new
-                        {
-                            LinksId = 6,
-                            PersonsId = 2
-                        },
-                        new
-                        {
-                            LinksId = 7,
-                            PersonsId = 3
-                        },
-                        new
-                        {
-                            LinksId = 8,
-                            PersonsId = 1
-                        });
+                    b.Navigation("PersonInterest");
                 });
 
-            modelBuilder.Entity("InterestLink", b =>
+            modelBuilder.Entity("API.Models.PersonInterest", b =>
                 {
-                    b.HasOne("API.Models.Interest", null)
-                        .WithMany()
-                        .HasForeignKey("InterestsId")
+                    b.HasOne("API.Models.Interest", "Interest")
+                        .WithMany("PersonInterests")
+                        .HasForeignKey("InterestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.Link", null)
-                        .WithMany()
-                        .HasForeignKey("LinksId")
+                    b.HasOne("API.Models.Person", "Person")
+                        .WithMany("PersonInterests")
+                        .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Interest");
+
+                    b.Navigation("Person");
                 });
 
-            modelBuilder.Entity("LinkPerson", b =>
+            modelBuilder.Entity("API.Models.Interest", b =>
                 {
-                    b.HasOne("API.Models.Link", null)
-                        .WithMany()
-                        .HasForeignKey("LinksId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("PersonInterests");
+                });
 
-                    b.HasOne("API.Models.Person", null)
-                        .WithMany()
-                        .HasForeignKey("PersonsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            modelBuilder.Entity("API.Models.Person", b =>
+                {
+                    b.Navigation("PersonInterests");
+                });
+
+            modelBuilder.Entity("API.Models.PersonInterest", b =>
+                {
+                    b.Navigation("Links");
                 });
 #pragma warning restore 612, 618
         }
