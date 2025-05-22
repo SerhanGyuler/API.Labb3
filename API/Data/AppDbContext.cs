@@ -18,7 +18,7 @@ namespace API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Nyckel för PersonInterest (kombinerad nyckel)
+            // Nyckel för PersonInterest
             modelBuilder.Entity<PersonInterest>()
                 .HasKey(pi => new { pi.PersonId, pi.InterestId });
 

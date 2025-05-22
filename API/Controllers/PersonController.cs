@@ -63,7 +63,7 @@ namespace API.Controllers
                 return BadRequest(new { errorMessage = "Personen har redan det här intresset." });
             }
 
-            // Skapa ny person-interest relation
+            // Skapar ny person-interest relation
             var newPersonInterest = new PersonInterest
             {
                 PersonId = personId,
@@ -73,15 +73,15 @@ namespace API.Controllers
             _context.PersonInterests.Add(newPersonInterest);
 
             // Hämta länken som är kopplad till intresset
-            var interestLink = await _context.Links
-                .FirstOrDefaultAsync(l => l.PersonId == personId && l.InterestId == interestId);
+            var interestLink = await _context.PersonInterests
+                .FirstOrDefaultAsync(pi => pi.PersonId == personId && pi.InterestId == interestId);
 
             if (interestLink == null)
             {
                 // Skapa ny länk om den inte redan finns
                 var newLink = new Link
                 {
-                    Url = "https://example.com", // Sätt en lämplig URL
+                    Url = "https://example.com",
                     PersonId = personId,
                     InterestId = interestId
                 };
